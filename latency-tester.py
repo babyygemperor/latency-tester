@@ -5,7 +5,7 @@ from time import sleep
 from ping3 import ping
 
 # SET YOUR PING RESPONSE TIME THRESHOLD HERE, IN SECONDS
-THRESHOLD = 0.25  # 250 milliseconds is the Comcast SLA threshold.
+THRESHOLD = 0.5  # 500 milliseconds is my tolerance
 
 # SET YOUR PING INTERVAL HERE, IN SECONDS
 INTERVAL = 1
@@ -36,8 +36,10 @@ while True:
 
     # Do we want to write it to the log?
     if latency is None or latency > THRESHOLD:
+        INTERVAL = 5
         write_log = "Yes"
     else:
+        INTERVAL = 1
         write_log = "No"
 
     # Use better text is packet is dropped
