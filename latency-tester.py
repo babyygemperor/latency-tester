@@ -5,7 +5,7 @@ from time import sleep
 from ping3 import ping
 
 # SET YOUR PING RESPONSE TIME THRESHOLD HERE, IN SECONDS
-THRESHOLD = 0.5  # 500 milliseconds is my tolerance
+THRESHOLD = 500  # 500 milliseconds is my tolerance
 
 # SET YOUR PING INTERVAL HERE, IN SECONDS
 INTERVAL = 1
@@ -15,7 +15,7 @@ DESTINATION = "www.google.com"
 
 # LOG TO WRITE TO WHEN PINGS TAKE LONGER THAN THE THRESHOLD SET ABOVE
 i = datetime.datetime.now()
-log_file = "logs/latency-tester." + i.strftime("%Y.%m.%d.%H.%M.%S") + ".log"
+log_file = "logs/internet.log"
 
 
 def write_to_file(file_to_write, message):
@@ -26,7 +26,10 @@ def write_to_file(file_to_write, message):
 
 
 count = 0
-header = f"Pinging {DESTINATION} every {INTERVAL} secs; threshold: {THRESHOLD} secs."
+date_time = datetime.datetime.now().strftime("%Y-%m-%d, %H:%M:%S")
+line = "--------------------------------------------"
+header = f"{line}\nStarting logging\t{date_time}\n{line}"
+
 print(header)
 write_to_file(log_file, header)
 
@@ -34,21 +37,23 @@ while True:
     count += 1
     latency = ping(DESTINATION)
 
-    # Do we want to write it to the log?
-    if latency is None or latency > THRESHOLD:
+    if latency is not None:
+        latency = round(ping(DESTINATION) * 1000, 3)
+        if latency < THRESHOLD:
+            INTERVAL = 1
+            write_log = "No"
+        else:
+            INTERVAL = 2
+            write_log = "Yes"
+        latency_text = f"{latency}ms"
+    else:
         INTERVAL = 5
         write_log = "Yes"
-    else:
-        INTERVAL = 1
-        write_log = "No"
+        latency_text = "PACKET DROPPED"
 
     # Use better text is packet is dropped
-    if latency is None:
-        latency_text = "PACKET DROPPED"
-    else:
-        latency_text = f"{latency} secs"
 
-    line = f"{datetime.datetime.now()}: pinged {DESTINATION}; latency: {latency_text}"
+    line = f"{datetime.datetime.now().strftime('%Y-%m-%d, %H:%M:%S')}:\tlatency: {latency_text}"
     print(f"{line}; logging: {write_log}")
 
     if write_log == "Yes":
